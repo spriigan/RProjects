@@ -1,9 +1,9 @@
-import { compare, genSalt, hash } from "bcrypt";
-import { Document, Error, model, Schema } from "mongoose";
+import { compare, genSalt, hash } from 'bcrypt';
+import { Document, Error, model, Schema } from 'mongoose';
 
 enum Role {
-  ADMIN = "admin",
-  USER = "user",
+  ADMIN = 'admin',
+  USER = 'user',
 }
 export type UserDocument = Document & {
   username: string;
@@ -22,7 +22,7 @@ export type UserDocument = Document & {
 };
 type ComparePasswordFunction = (
   plainPassword: string,
-  cb: (err: any, isMatch: boolean) => void
+  cb: (err: any, isMatch: boolean) => void,
 ) => void;
 const UserSchema = new Schema<UserDocument>({
   username: { type: String, required: true, unique: true },
@@ -38,9 +38,9 @@ const UserSchema = new Schema<UserDocument>({
     location: String,
   },
 });
-UserSchema.pre("save", function save(next) {
+UserSchema.pre('save', function save(next) {
   const user = this as UserDocument;
-  if (!user.isModified("password")) {
+  if (!user.isModified('password')) {
     return next();
   }
   genSalt(10, (err, salt) => {
@@ -60,11 +60,11 @@ UserSchema.pre("save", function save(next) {
 const comparePassword: ComparePasswordFunction = function (
   this: any,
   plainPassword,
-  cb
+  cb,
 ) {
   compare(plainPassword, this.password, (err, isMatch: boolean) => {
     cb(err, isMatch);
   });
 };
 UserSchema.methods.comparePassword = comparePassword;
-export default model<UserDocument>("User", UserSchema);
+export default model<UserDocument>('User', UserSchema);

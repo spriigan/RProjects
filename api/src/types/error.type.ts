@@ -1,5 +1,5 @@
 export class GeneralError extends Error {
-  protected statusCode: number = 500;
+  protected statusCode = 500;
   constructor(message: string) {
     super(message);
   }

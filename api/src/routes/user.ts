@@ -1,17 +1,21 @@
-import { Router } from "express";
+import { Router } from 'express';
+import { isAuthenticated } from '../config/passport';
 import {
   deleteAccount,
   findUser,
   findUsers,
+  login,
+  logout,
   register,
   updateUserProfile,
-} from "../controller/user";
+} from '../controller/user';
 
 const route: Router = Router();
-
-route.post("/", register);
-route.get("/:id", findUser);
-route.get("/", findUsers);
-route.patch("/update-profile/:id", updateUserProfile);
-route.delete("/:id", deleteAccount);
+route.post('/login', login);
+route.post('/', register);
+route.post('/logout', isAuthenticated, logout);
+route.get('/:id', findUser);
+route.get('/', isAuthenticated, findUsers);
+route.patch('/update-profile/:id', updateUserProfile);
+route.delete('/:id', deleteAccount);
 export default route;

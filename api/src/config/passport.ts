@@ -1,24 +1,23 @@
-import { deserializeUser, serializeUser, use } from "passport";
-import { Strategy } from "passport-local";
-import User, { UserDocument } from "../models/User";
+import { NextFunction, Request, Response } from 'express';
+import passport from 'passport';
+import passportLocal from 'passport-local';
+import User, { UserDocument } from '../models/User';
 
-const LocalStrategy = Strategy;
-serializeUser<any>((user, done) => {
-  done(undefined, user);
+const LocalStrategy = passportLocal.Strategy;
+passport.serializeUser<string>((user: any, done) => {
+  done(undefined, user._id);
 });
 
-deserializeUser<UserDocument>((payload, done) => {
-  User.findById(payload.id, (err: NativeError, user: UserDocument) => {
+passport.deserializeUser<UserDocument>((payload, done) => {
+  User.findById(payload, (err: NativeError, user: UserDocument) => {
     done(err, { id: user._id, username: user.username, email: user.email });
   });
 });
-
-use(
-  new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
-    User.findOne({ email: email }, (err: NativeError, user: UserDocument) => {
-      if (err) {
-        return done(err);
-      }
+passport.use(
+  new LocalStrategy(
+    { usernameField: 'email' },
+    async (email, password, done) => {
+      const user = await User.findOne({ email: email }).select('+password');
       if (!user) {
         return done(undefined, false, {
           message: `email ${email} is not found`,
@@ -31,8 +30,19 @@ use(
         if (isMatch) {
           return done(undefined, user);
         }
-        done(undefined, false, { message: "wrong password" });
+        done(undefined, false, { message: 'wrong password' });
       });
-    });
-  })
+    },
+  ),
 );
+
+export const isAuthenticated = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.send('please, log in');
+};
