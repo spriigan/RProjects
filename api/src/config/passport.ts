@@ -44,5 +44,5 @@ export const isAuthenticated = (
   if (req.isAuthenticated()) {
     return next();
   }
-  res.send('please, log in');
+  res.cookie('csrf', req.csrfToken()).send('please, log in');
 };

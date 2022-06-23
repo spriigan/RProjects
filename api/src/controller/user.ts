@@ -27,7 +27,7 @@ export const register = async (
     }
     const user: UserDocument = new User(req.body);
     const newUser = await user.save();
-    res.status(201).json(newUser);
+    res.cookie('csrf', req.csrfToken()).status(201).json(newUser);
   } catch (error) {
     next(error);
   }
@@ -45,12 +45,12 @@ export const findUser = async (
     );
     return next(error);
   }
-  res.status(200).json(user);
+  res.cookie('csrf', req.csrfToken()).status(200).json(user);
 };
 
 export const findUsers = async (req: Request, res: Response) => {
   const users = await User.find();
-  res.status(200).json(users);
+  res.cookie('csrf', req.csrfToken()).status(200).json(users);
 };
 
 export const updateUserProfile = async (
@@ -71,12 +71,12 @@ export const updateUserProfile = async (
   user.profile.location = req.body.location || user.profile.location;
   user.profile.picture = req.body.picture || user.profile.picture;
   const updated = await user.save();
-  res.status(200).json(updated);
+  res.cookie('csrf', req.csrfToken()).status(200).json(updated);
 };
 
 export const deleteAccount = async (req: Request, res: Response) => {
   const result = await User.deleteOne({ _id: req.params.id });
-  res.status(200).json(result);
+  res.cookie('csrf', req.csrfToken()).status(200).json(result);
 };
 export const login = async (
   req: Request,
@@ -108,7 +108,7 @@ export const login = async (
       if (err) {
         return next(err);
       }
-      res.send('logged in');
+      res.cookie('csrf', req.csrfToken()).send(req.session);
     });
   })(req, res, next);
 };
@@ -119,6 +119,6 @@ export const logout = (req: Request, res: Response, next: NextFunction) => {
       return next(err);
     }
     req.session.cookie.maxAge = 0;
-    res.send('logged out');
+    res.cookie('csrf', req.csrfToken()).send('logged out');
   });
 };

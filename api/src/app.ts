@@ -2,17 +2,20 @@ import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoute from './routes/user';
+import helmet from 'helmet';
 import connectRedis, { RedisStore } from 'connect-redis';
 import session from 'express-session';
 import bodyParser from 'body-parser';
 import { handleError } from './middleware/error.middleware';
 import { createClient } from 'redis';
 import passport from 'passport';
+import csrf from 'csurf';
 import './config/passport';
 
 const app: Application = express();
 dotenv.config();
 app.use(express.json());
+app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
 const connect = async () => {
   await mongoose.connect(
@@ -23,6 +26,9 @@ const RedisStore: RedisStore = connectRedis(session);
 const redisClient = createClient({
   host: 'localhost',
   port: 6379,
+});
+redisClient.on('connect', () => {
+  console.log('connect to redis');
 });
 app.use(
   session({
@@ -40,9 +46,7 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-redisClient.on('connect', () => {
-  console.log('connect to redis');
-});
+app.use(csrf());
 app.use('/user', userRoute);
 app.use(handleError);
 app.listen(3000, () => {
