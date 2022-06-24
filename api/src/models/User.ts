@@ -1,7 +1,7 @@
 import { compare, genSalt, hash } from 'bcrypt';
-import { Document, Error, model, Schema } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 
-enum Role {
+export enum Role {
   ADMIN = 'admin',
   USER = 'user',
 }

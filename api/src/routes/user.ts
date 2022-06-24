@@ -9,6 +9,7 @@ import {
   register,
   updateUserProfile,
 } from '../controller/user';
+import upload from '../middleware/uploadFile.middleware';
 
 const route: Router = Router();
 route.post('/login', login);
@@ -16,6 +17,6 @@ route.post('/', register);
 route.post('/logout', isAuthenticated, logout);
 route.get('/:id', isAuthenticated, findUser);
 route.get('/', findUsers);
-route.patch('/update-profile/:id', updateUserProfile);
+route.patch('/update-profile/:id', upload.single('avatar'), updateUserProfile);
 route.delete('/:id', deleteAccount);
 export default route;

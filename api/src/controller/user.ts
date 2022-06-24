@@ -26,8 +26,10 @@ export const register = async (
       );
     }
     const user: UserDocument = new User(req.body);
-    const newUser = await user.save();
-    res.cookie('csrf', req.csrfToken()).status(201).json(newUser);
+    const newUser: any = await user.save();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...result } = newUser._doc;
+    res.cookie('csrf', req.csrfToken()).status(201).json(result);
   } catch (error) {
     next(error);
   }
@@ -69,7 +71,7 @@ export const updateUserProfile = async (
   user.profile.name = req.body.name || user.profile.name;
   user.profile.gender = req.body.gender || user.profile.gender;
   user.profile.location = req.body.location || user.profile.location;
-  user.profile.picture = req.body.picture || user.profile.picture;
+  user.profile.picture = req.file?.filename || user.profile.picture;
   const updated = await user.save();
   res.cookie('csrf', req.csrfToken()).status(200).json(updated);
 };

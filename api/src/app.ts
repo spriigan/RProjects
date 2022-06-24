@@ -2,7 +2,6 @@ import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoute from './routes/user';
-import helmet from 'helmet';
 import connectRedis, { RedisStore } from 'connect-redis';
 import session from 'express-session';
 import bodyParser from 'body-parser';
@@ -11,6 +10,7 @@ import { createClient } from 'redis';
 import passport from 'passport';
 import csrf from 'csurf';
 import './config/passport';
+import helmet from 'helmet';
 
 const app: Application = express();
 dotenv.config();
