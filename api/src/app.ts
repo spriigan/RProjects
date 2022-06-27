@@ -1,6 +1,6 @@
 import express, { Application } from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 import userRoute from './routes/user';
 import connectRedis, { RedisStore } from 'connect-redis';
 import session from 'express-session';
@@ -11,21 +11,19 @@ import passport from 'passport';
 import csrf from 'csurf';
 import './config/passport';
 import helmet from 'helmet';
-
+import { resolve } from 'path';
+config({ path: resolve(__dirname, '../.env') });
 const app: Application = express();
-dotenv.config();
 app.use(express.json());
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
 const connect = async () => {
-  await mongoose.connect(
-    'mongodb+srv://nodeapi:jqS0vcYk4CDQO2e2@cluster0.0n4e6.mongodb.net/?retryWrites=true&w=majority',
-  );
+  await mongoose.connect(`${process.env.MONGO_URI}`);
 };
 const RedisStore: RedisStore = connectRedis(session);
 const redisClient = createClient({
-  host: 'localhost',
-  port: 6379,
+  host: process.env.HOST,
+  port: Number(process.env.REDIS_PORT),
 });
 redisClient.on('connect', () => {
   console.log('connect to redis');
@@ -33,7 +31,7 @@ redisClient.on('connect', () => {
 app.use(
   session({
     store: new RedisStore({ client: redisClient }),
-    secret: 'ueotkgmdhs;s,rgke449ujsms;ke',
+    secret: `${process.env.SESSION_SECRET}`,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -49,7 +47,7 @@ app.use(passport.session());
 app.use(csrf());
 app.use('/user', userRoute);
 app.use(handleError);
-app.listen(3000, () => {
+app.listen(process.env.PORT, () => {
   connect();
   console.log('server running');
 });
