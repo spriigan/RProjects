@@ -16,7 +16,29 @@ export type UserDocument = Document & {
     name: string;
     gender: string;
     picture: string;
-    location: string;
+    address: {
+      country: string;
+      city: string;
+      zipCode: number;
+      fullAddress: string;
+    };
+  };
+  emporium: {
+    emporiumId: string;
+    name: string;
+    address: {
+      country: string;
+      city: string;
+      zipCode: number;
+      fullAddress: string;
+    };
+    email: string;
+    rating: number;
+    productsCount: number;
+    followers: number;
+    description: string;
+    notes: string;
+    joinAt: number;
   };
   comparePassword: ComparePasswordFunction;
 };
@@ -35,9 +57,34 @@ const UserSchema = new Schema<UserDocument>({
     name: String,
     gender: String,
     picture: String,
-    location: String,
+    address: [
+      {
+        country: { type: String, default: '' },
+        city: { type: String, default: '' },
+        zipCode: { type: Number, default: '' },
+        fullAddress: { type: String, default: '' },
+      },
+    ],
+  },
+  emporium: {
+    emporiumId: String,
+    name: String,
+    address: {
+      country: String,
+      city: String,
+      zipCode: Number,
+      fullAddress: String,
+    },
+    email: String,
+    rating: Number,
+    productsCount: Number,
+    followers: Number,
+    description: String,
+    notes: String,
+    joinAt: Number,
   },
 });
+
 UserSchema.pre('save', function save(next) {
   const user = this as UserDocument;
   if (!user.isModified('password')) {

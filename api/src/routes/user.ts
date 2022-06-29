@@ -17,6 +17,6 @@ route.post('/', register);
 route.post('/logout', isAuthenticated, logout);
 route.get('/:id', isAuthenticated, findUser);
 route.get('/', findUsers);
-route.patch('/update-profile/:id', upload.single('avatar'), updateUserProfile);
+route.patch('/update-profile/', upload.single('avatar'), updateUserProfile);
 route.delete('/:id', deleteAccount);
 export default route;

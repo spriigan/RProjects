@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, check, validationResult } from 'express-validator';
+import { CallbackError } from 'mongoose';
 import passport from 'passport';
 import User, { UserDocument } from '../models/User';
 import { BadRequest, NotFound } from './../types/error.type';
@@ -60,20 +61,34 @@ export const updateUserProfile = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const user = await User.findOne({ _id: req.params.id });
-  if (!user) {
-    const error = new NotFound(
-      `there is no user registered by this ID: ${req.params.id}`,
-    );
-    return next(error);
-  }
-  user.email = req.body.email || user.email;
-  user.profile.name = req.body.name || user.profile.name;
-  user.profile.gender = req.body.gender || user.profile.gender;
-  user.profile.location = req.body.location || user.profile.location;
-  user.profile.picture = req.file?.filename || user.profile.picture;
-  const updated = await user.save();
-  res.cookie('csrf', req.csrfToken()).status(200).json(updated);
+  const user = req.user as UserDocument;
+  User.findById(user.id, (err: any, user: UserDocument) => {
+    if (err) {
+      return next(err);
+    }
+    let address;
+    if (req.body.address != undefined) {
+      address = JSON.parse(req.body.address);
+    }
+    user.email = req.body.email || user.email;
+    user.profile.name = req.body.name || user.profile.name;
+    user.profile.gender = req.body.gender || user.profile.gender;
+    user.profile.address.city =
+      (address && address.city) || user.profile.address.city;
+    user.profile.address.country =
+      (address && address.country) || user.profile.address.country;
+    user.profile.address.zipCode =
+      (address && address.zipCode) || user.profile.address.zipCode;
+    user.profile.address.fullAddress =
+      (address && address.fullAddress) || user.profile.address.fullAddress;
+    user.profile.picture = req.file?.filename || user.profile.picture;
+    user.save((err: CallbackError, result: UserDocument) => {
+      if (err) {
+        return next(err);
+      }
+      res.cookie('csrf', req.csrfToken()).json(result);
+    });
+  });
 };
 
 export const deleteAccount = async (req: Request, res: Response) => {
