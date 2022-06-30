@@ -1,10 +1,18 @@
 import { compare, genSalt, hash } from 'bcrypt';
 import { Document, model, Schema } from 'mongoose';
+import { nanoid } from 'nanoid';
 
 export enum Role {
   ADMIN = 'admin',
   USER = 'user',
 }
+export type Address = {
+  _id: string;
+  country: string;
+  city: string;
+  zipCode: number;
+  fullAddress: string;
+};
 export type UserDocument = Document & {
   username: string;
   email: string;
@@ -16,22 +24,12 @@ export type UserDocument = Document & {
     name: string;
     gender: string;
     picture: string;
-    address: {
-      country: string;
-      city: string;
-      zipCode: number;
-      fullAddress: string;
-    };
+    addresses: Address[];
   };
   emporium: {
     emporiumId: string;
     name: string;
-    address: {
-      country: string;
-      city: string;
-      zipCode: number;
-      fullAddress: string;
-    };
+    addresses: Address[];
     email: string;
     rating: number;
     productsCount: number;
@@ -57,24 +55,28 @@ const UserSchema = new Schema<UserDocument>({
     name: String,
     gender: String,
     picture: String,
-    address: [
+    addresses: [
       {
-        country: { type: String, default: '' },
-        city: { type: String, default: '' },
-        zipCode: { type: Number, default: '' },
-        fullAddress: { type: String, default: '' },
+        _id: { type: String, default: nanoid() },
+        country: String,
+        city: String,
+        zipCode: Number,
+        fullAddress: String,
       },
     ],
   },
   emporium: {
     emporiumId: String,
     name: String,
-    address: {
-      country: String,
-      city: String,
-      zipCode: Number,
-      fullAddress: String,
-    },
+    addresses: [
+      {
+        _id: { type: String, default: nanoid() },
+        country: String,
+        city: String,
+        zipCode: Number,
+        fullAddress: String,
+      },
+    ],
     email: String,
     rating: Number,
     productsCount: Number,

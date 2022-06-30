@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import { body, check, validationResult } from 'express-validator';
 import { CallbackError } from 'mongoose';
 import passport from 'passport';
-import User, { UserDocument } from '../models/User';
+import { join } from 'path';
+import User, { Address, UserDocument } from '../models/User';
 import { BadRequest, NotFound } from './../types/error.type';
 
 export const register = async (
@@ -41,7 +42,8 @@ export const findUser = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const user = await User.findOne({ _id: req.params.id });
+  const currentUser = req.user as UserDocument;
+  const user = await User.findOne({ _id: currentUser.id });
   if (!user) {
     const error = new NotFound(
       `there is no user registered by this ID: ${req.params.id}`,
@@ -66,21 +68,23 @@ export const updateUserProfile = async (
     if (err) {
       return next(err);
     }
-    let address;
+    let address: Address | any;
     if (req.body.address != undefined) {
       address = JSON.parse(req.body.address);
     }
     user.email = req.body.email || user.email;
     user.profile.name = req.body.name || user.profile.name;
     user.profile.gender = req.body.gender || user.profile.gender;
-    user.profile.address.city =
-      (address && address.city) || user.profile.address.city;
-    user.profile.address.country =
-      (address && address.country) || user.profile.address.country;
-    user.profile.address.zipCode =
-      (address && address.zipCode) || user.profile.address.zipCode;
-    user.profile.address.fullAddress =
-      (address && address.fullAddress) || user.profile.address.fullAddress;
+    address &&
+      user.profile.addresses.forEach((data) => {
+        if (data._id === address._id) {
+          data.city = address.city || data.city;
+          data.country = address.country || data.country;
+          data.zipCode = address.zipCode || data.zipCode;
+          data.fullAddress = address.fullAddress || data.fullAddress;
+          return;
+        }
+      });
     user.profile.picture = req.file?.filename || user.profile.picture;
     user.save((err: CallbackError, result: UserDocument) => {
       if (err) {
@@ -91,9 +95,14 @@ export const updateUserProfile = async (
   });
 };
 
-export const deleteAccount = async (req: Request, res: Response) => {
-  const result = await User.deleteOne({ _id: req.params.id });
-  res.cookie('csrf', req.csrfToken()).status(200).json(result);
+export const deleteAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const user = req.user as UserDocument;
+  await User.deleteOne({ _id: user.id });
+  logout(req, res, next);
 };
 export const login = async (
   req: Request,
@@ -125,7 +134,7 @@ export const login = async (
       if (err) {
         return next(err);
       }
-      res.cookie('csrf', req.csrfToken()).send(req.session);
+      res.cookie('csrf', req.csrfToken()).send(req.user);
     });
   })(req, res, next);
 };
@@ -138,4 +147,42 @@ export const logout = (req: Request, res: Response, next: NextFunction) => {
     req.session.cookie.maxAge = 0;
     res.cookie('csrf', req.csrfToken()).send('logged out');
   });
+};
+
+export const addAddress = async (req: Request, res: Response) => {
+  const user = req.user as UserDocument;
+  const result = await User.updateOne(
+    { _id: user.id },
+    { $push: { 'profile.addresses': req.body } },
+  );
+  res.cookie('csrf', req.csrfToken()).send(result);
+};
+
+export const deleteAddress = async (req: Request, res: Response) => {
+  const user = req.user as UserDocument;
+  const result = await User.updateOne(
+    { _id: user.id },
+    { $pull: { 'profile.addresses': { _id: req.params.id } } },
+  );
+  res.cookie('csrf', req.csrfToken()).send(result);
+};
+
+export const getProfilePicture = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  res
+    .cookie('csrf', req.csrfToken())
+    .sendFile(
+      join(
+        process.cwd(),
+        `public/uploads/images/profile/${req.params.picture}`,
+      ),
+      (err) => {
+        if (err) {
+          return next(err);
+        }
+      },
+    );
 };
