@@ -13,6 +13,23 @@ export type Address = {
   zipCode: number;
   fullAddress: string;
 };
+export type Profile = {
+  name: string;
+  gender: string;
+  picture: string;
+  addresses: Address[];
+};
+export type Emporium = {
+  emporiumId: string;
+  name: string;
+  addresses: Address[];
+  email: string;
+  rating: number;
+  followers: number;
+  description: string;
+  notes: string;
+  joinAt: number;
+};
 export type UserDocument = Document & {
   username: string;
   email: string;
@@ -20,24 +37,8 @@ export type UserDocument = Document & {
   role: Role;
   createdAt: number;
   lastLoginAt: number;
-  profile: {
-    name: string;
-    gender: string;
-    picture: string;
-    addresses: Address[];
-  };
-  emporium: {
-    emporiumId: string;
-    name: string;
-    addresses: Address[];
-    email: string;
-    rating: number;
-    productsCount: number;
-    followers: number;
-    description: string;
-    notes: string;
-    joinAt: number;
-  };
+  profile: Profile;
+  emporium: Emporium;
   comparePassword: ComparePasswordFunction;
 };
 type ComparePasswordFunction = (
@@ -66,7 +67,7 @@ const UserSchema = new Schema<UserDocument>({
     ],
   },
   emporium: {
-    emporiumId: String,
+    emporiumId: { type: String, default: nanoid() },
     name: String,
     addresses: [
       {
@@ -78,12 +79,11 @@ const UserSchema = new Schema<UserDocument>({
       },
     ],
     email: String,
-    rating: Number,
-    productsCount: Number,
-    followers: Number,
+    rating: { type: Number, default: 0 },
+    followers: { type: Number, default: 0 },
     description: String,
     notes: String,
-    joinAt: Number,
+    joinAt: { type: Number, default: Date.now() },
   },
 });
 

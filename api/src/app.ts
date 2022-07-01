@@ -12,6 +12,7 @@ import csrf from 'csurf';
 import './config/passport';
 import helmet from 'helmet';
 import { resolve } from 'path';
+import emporiumRoute from './routes/emporium.route';
 config({ path: resolve(__dirname, '../.env') });
 const app: Application = express();
 app.use(express.json());
@@ -46,6 +47,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(csrf());
 app.use('/user', userRoute);
+app.use('/emporium', emporiumRoute);
 app.use(handleError);
 app.listen(process.env.PORT, () => {
   connect();

@@ -3,6 +3,7 @@ import { body, check, validationResult } from 'express-validator';
 import { CallbackError } from 'mongoose';
 import passport from 'passport';
 import { join } from 'path';
+import { Mapper } from '../mapper/mapper';
 import User, { Address, UserDocument } from '../models/User';
 import { BadRequest, NotFound } from './../types/error.type';
 
@@ -144,7 +145,6 @@ export const logout = (req: Request, res: Response, next: NextFunction) => {
     if (err) {
       return next(err);
     }
-    req.session.cookie.maxAge = 0;
     res.cookie('csrf', req.csrfToken()).send('logged out');
   });
 };

@@ -1,5 +1,4 @@
-import { Role } from '../models/User';
-import { CreateProfileDto } from './create-profile.dto';
+import { Emporium, Profile, Role } from '../models/User';
 
 export class CreateUserDto {
   username?: string;
@@ -8,5 +7,6 @@ export class CreateUserDto {
   role?: Role;
   createdAt?: number;
   lastLoginAt?: number;
-  profile?: CreateProfileDto;
+  profile?: Profile;
+  emporium?: Emporium;
 }
