@@ -11,15 +11,16 @@ import passport from 'passport';
 import csrf from 'csurf';
 import './config/passport';
 import helmet from 'helmet';
-import { resolve } from 'path';
 import emporiumRoute from './routes/emporium.route';
-config({ path: resolve(__dirname, '../.env') });
+import { MONGO_URI, SESSION_SECRET } from './utils/config.util';
 const app: Application = express();
 app.use(express.json());
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
 const connect = async () => {
-  await mongoose.connect(`${process.env.MONGO_URI}`);
+  await mongoose.connect(MONGO_URI, {
+    dbName: 'rprojects',
+  });
 };
 const RedisStore: RedisStore = connectRedis(session);
 const redisClient = createClient({
@@ -32,7 +33,7 @@ redisClient.on('connect', () => {
 app.use(
   session({
     store: new RedisStore({ client: redisClient }),
-    secret: `${process.env.SESSION_SECRET}`,
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {

@@ -1,6 +1,7 @@
 import { compare, genSalt, hash } from 'bcrypt';
-import { Document, model, Schema } from 'mongoose';
+import mongoose, { Document, model, Schema } from 'mongoose';
 import { nanoid } from 'nanoid';
+import { EmporiumDocument } from './emporium.model';
 
 export enum Role {
   ADMIN = 'admin',
@@ -19,26 +20,16 @@ export type Profile = {
   picture: string;
   addresses: Address[];
 };
-export type Emporium = {
-  emporiumId: string;
-  name: string;
-  addresses: Address[];
-  email: string;
-  rating: number;
-  followers: number;
-  description: string;
-  notes: string;
-  joinAt: number;
-};
 export type UserDocument = Document & {
   username: string;
   email: string;
   password: string;
+  following: string[];
   role: Role;
   createdAt: number;
   lastLoginAt: number;
   profile: Profile;
-  emporium: Emporium;
+  emporium: { _id: EmporiumDocument; name: string };
   comparePassword: ComparePasswordFunction;
 };
 type ComparePasswordFunction = (
@@ -49,6 +40,7 @@ const UserSchema = new Schema<UserDocument>({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, select: false },
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EmporiumSchema' }],
   role: { type: String, enum: Role, default: Role.USER },
   createdAt: { type: Number, required: true },
   lastLoginAt: { type: Number },
@@ -67,23 +59,8 @@ const UserSchema = new Schema<UserDocument>({
     ],
   },
   emporium: {
-    emporiumId: { type: String, default: nanoid() },
+    _id: { type: mongoose.Schema.Types.ObjectId, ref: 'EmporiumSchema' },
     name: String,
-    addresses: [
-      {
-        _id: { type: String, default: nanoid() },
-        country: String,
-        city: String,
-        zipCode: Number,
-        fullAddress: String,
-      },
-    ],
-    email: String,
-    rating: { type: Number, default: 0 },
-    followers: { type: Number, default: 0 },
-    description: String,
-    notes: String,
-    joinAt: { type: Number, default: Date.now() },
   },
 });
 
