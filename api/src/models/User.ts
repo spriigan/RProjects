@@ -94,3 +94,10 @@ const comparePassword: ComparePasswordFunction = function (
 };
 UserSchema.methods.comparePassword = comparePassword;
 export default model<UserDocument>('User', UserSchema);
+export const registerModels = () => {
+  try {
+    mongoose.model('User', UserSchema);
+  } catch (error) {
+    // console.log(error)
+  }
+};

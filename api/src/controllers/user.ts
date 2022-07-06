@@ -4,7 +4,8 @@ import { CallbackError } from 'mongoose';
 import passport from 'passport';
 import { join } from 'path';
 import User, { Address, UserDocument } from '../models/User';
-import { BadRequest, NotFound } from './../types/error.type';
+import { saveUser } from '../services/user.service';
+import { BadRequest, NotFound } from '../types/error.type';
 
 export const register = async (
   req: Request,
@@ -19,22 +20,12 @@ export const register = async (
     return next(error);
   }
   req.body.createdAt = Date.now();
-  const existingEmail = await User.findOne({ email: req.body.email });
-  const existingUsername = await User.findOne({ username: req.body.username });
-  try {
-    if (existingEmail || existingUsername) {
-      throw new BadRequest(
-        'there is a user registered under this email or username',
-      );
+  saveUser(req.body, (err: CallbackError, user: UserDocument) => {
+    if (err) {
+      return next(err);
     }
-    const user: UserDocument = new User(req.body);
-    const newUser: any = await user.save();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...result } = newUser._doc;
-    res.cookie('csrf', req.csrfToken()).status(201).json(result);
-  } catch (error) {
-    next(error);
-  }
+    res.cookie('csrf', req.csrfToken()).status(201).json(user);
+  });
 };
 
 export const findUser = async (

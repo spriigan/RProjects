@@ -4,7 +4,7 @@ import {
   createEmporium,
   getEmporia,
   getOwnedEmporium,
-} from '../controller/emporium.controller';
+} from '../controllers/emporium.controller';
 
 const emporiumRoute: Router = Router();
 emporiumRoute.post('/', isAuthenticated, createEmporium);

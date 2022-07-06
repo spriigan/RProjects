@@ -3,7 +3,7 @@ import { body, check, validationResult } from 'express-validator';
 import { MongooseError } from 'mongoose';
 import User, { UserDocument } from '../models/User';
 import { BadRequest } from '../types/error.type';
-import Emporium, { EmporiumDocument } from './../models/emporium.model';
+import Emporium, { EmporiumDocument } from '../models/emporium.model';
 
 export const createEmporium = async (
   req: Request,
