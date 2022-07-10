@@ -18,8 +18,8 @@ app.use(express.json());
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: true }));
 const connect = async () => {
-  await mongoose.connect(MONGO_URI, {
-    dbName: 'rprojects',
+  await mongoose.connect(`${process.env.MONGO_URI}`, {
+    dbName: 'test',
   });
 };
 const RedisStore: RedisStore = connectRedis(session);

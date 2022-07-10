@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, check, validationResult } from 'express-validator';
-import { CallbackError } from 'mongoose';
+import mongoose, { CallbackError, MongooseError } from 'mongoose';
 import passport from 'passport';
 import { join } from 'path';
+import emporiumModel from '../models/emporium.model';
 import User, { Address, UserDocument } from '../models/User';
 import { saveUser } from '../services/user.service';
 import { BadRequest, NotFound } from '../types/error.type';
@@ -91,9 +92,25 @@ export const deleteAccount = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const user = req.user as UserDocument;
-  await User.deleteOne({ _id: user.id });
-  logout(req, res, next);
+  const currentUser = req.user as UserDocument;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const user = await User.findById(currentUser.id);
+    if (!user) {
+      const err = new BadRequest('user not found');
+      return next(err);
+    }
+    await User.findByIdAndDelete(user._id).session(session);
+    await emporiumModel.findByIdAndDelete('kskawk3837874jkd');
+    await session.commitTransaction();
+    session.endSession();
+    logout(req, res, next);
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
 };
 export const login = async (
   req: Request,
