@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, check, validationResult } from 'express-validator';
-import { MongooseError } from 'mongoose';
+import mongoose, { MongooseError } from 'mongoose';
 import User, { UserDocument } from '../models/User';
-import { BadRequest } from '../types/error.type';
+import { BadRequest, NotFound } from '../types/error.type';
 import Emporium, { EmporiumDocument } from '../models/emporium.model';
 
 export const createEmporium = async (
@@ -37,6 +37,7 @@ export const createEmporium = async (
       }
       user.emporium._id = emporium;
       user.emporium.name = emporium.name;
+      user.isAlsoSeller = true;
       user.save((err) => {
         if (err) {
           return next(err);
@@ -84,4 +85,66 @@ export const getOwnedEmporium = async (
       },
     );
   });
+};
+
+export const updateEmporium = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const currentUser = req.user as UserDocument;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const user = await User.findById(currentUser.id);
+    if (!user || !user.isAlsoSeller) {
+      const err = new NotFound('User or emporium is not found');
+      return next(err);
+    }
+    const emporium = await Emporium.findByIdAndUpdate(
+      user.emporium._id,
+      {
+        $set: req.body,
+      },
+      { new: true },
+    ).session(session);
+    user.emporium.name = req.body.name || user.emporium.name;
+    await user.save();
+    await session.commitTransaction();
+    session.endSession();
+    res.cookie('csrf', req.csrfToken()).status(200).json(emporium);
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+export const deleteEmporium = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const currentUser = req.user as UserDocument;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const user = await User.findById(currentUser.id);
+    if (!user || !user.isAlsoSeller) {
+      const err = new NotFound("user or emporium doesn't exist");
+      return next(err);
+    }
+    await Emporium.findByIdAndDelete(user.emporium._id).session(session);
+    await User.findByIdAndUpdate(currentUser.id, {
+      $unset: { emporium: '' },
+      $set: { isAlsoSeller: false },
+    });
+    await session.commitTransaction();
+    session.endSession();
+    res.cookie('csrf', req.csrfToken()).status(200).send('emporium deleted');
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
 };

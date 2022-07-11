@@ -29,6 +29,7 @@ export type UserDocument = Document & {
   createdAt: number;
   lastLoginAt: number;
   profile: Profile;
+  isAlsoSeller: boolean;
   emporium: { _id: EmporiumDocument; name: string };
   comparePassword: ComparePasswordFunction;
 };
@@ -44,6 +45,7 @@ const UserSchema = new Schema<UserDocument>({
   role: { type: String, enum: Role, default: Role.USER },
   createdAt: { type: Number, required: true },
   lastLoginAt: { type: Number },
+  isAlsoSeller: { type: Boolean },
   profile: {
     name: String,
     gender: String,

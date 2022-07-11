@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, check, validationResult } from 'express-validator';
-import mongoose, { CallbackError, MongooseError } from 'mongoose';
+import mongoose, { CallbackError } from 'mongoose';
 import passport from 'passport';
 import { join } from 'path';
 import emporiumModel from '../models/emporium.model';
@@ -102,7 +102,7 @@ export const deleteAccount = async (
       return next(err);
     }
     await User.findByIdAndDelete(user._id).session(session);
-    await emporiumModel.findByIdAndDelete('kskawk3837874jkd');
+    await emporiumModel.findByIdAndDelete(user.emporium._id);
     await session.commitTransaction();
     session.endSession();
     logout(req, res, next);
