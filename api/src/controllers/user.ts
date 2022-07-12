@@ -98,11 +98,13 @@ export const deleteAccount = async (
   try {
     const user = await User.findById(currentUser.id);
     if (!user) {
+      session.abortTransaction();
+      session.endSession();
       const err = new BadRequest('user not found');
       return next(err);
     }
     await User.findByIdAndDelete(user._id).session(session);
-    await emporiumModel.findByIdAndDelete(user.emporium._id);
+    await emporiumModel.findByIdAndDelete(user.emporiumId);
     await session.commitTransaction();
     session.endSession();
     logout(req, res, next);

@@ -30,7 +30,7 @@ export type UserDocument = Document & {
   lastLoginAt: number;
   profile: Profile;
   isAlsoSeller: boolean;
-  emporium: { _id: EmporiumDocument; name: string };
+  emporiumId: EmporiumDocument;
   comparePassword: ComparePasswordFunction;
 };
 type ComparePasswordFunction = (
@@ -60,10 +60,7 @@ const UserSchema = new Schema<UserDocument>({
       },
     ],
   },
-  emporium: {
-    _id: { type: mongoose.Schema.Types.ObjectId, ref: 'EmporiumSchema' },
-    name: String,
-  },
+  emporiumId: { type: mongoose.Schema.Types.ObjectId, ref: 'Emporium' },
 });
 
 UserSchema.pre('save', function save(next) {

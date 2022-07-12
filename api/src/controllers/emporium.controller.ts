@@ -35,8 +35,7 @@ export const createEmporium = async (
       if (err) {
         return next(err);
       }
-      user.emporium._id = emporium;
-      user.emporium.name = emporium.name;
+      user.emporiumId = emporium;
       user.isAlsoSeller = true;
       user.save((err) => {
         if (err) {
@@ -66,25 +65,17 @@ export const getOwnedEmporium = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const user = req.user as UserDocument;
-  User.findById(user.id, (err: MongooseError, found: UserDocument) => {
-    if (err) {
+  const currentUser = req.user as UserDocument;
+  try {
+    const user = await User.findById(currentUser.id).populate('emporiumId');
+    if (user && !user.isAlsoSeller) {
+      const err = new BadRequest('you are not a seller yet');
       return next(err);
     }
-    if (!found.emporium._id) {
-      const error = new BadRequest("you haven't create an emporium");
-      return next(error);
-    }
-    Emporium.findById(
-      found.emporium._id,
-      (err: MongooseError, found: EmporiumDocument) => {
-        if (err) {
-          return next(err);
-        }
-        res.cookie('csrf', req.csrfToken()).status(200).json(found);
-      },
-    );
-  });
+    res.cookie('csrf', req.csrfToken()).status(200).json(user?.emporiumId);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const updateEmporium = async (
@@ -93,29 +84,19 @@ export const updateEmporium = async (
   next: NextFunction,
 ) => {
   const currentUser = req.user as UserDocument;
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
     const user = await User.findById(currentUser.id);
-    if (!user || !user.isAlsoSeller) {
-      const err = new NotFound('User or emporium is not found');
-      return next(err);
+    if (!user) {
+      const error = new NotFound('user not found');
+      return next(error);
     }
-    const emporium = await Emporium.findByIdAndUpdate(
-      user.emporium._id,
-      {
-        $set: req.body,
-      },
+    const updatedEmporium = await Emporium.findByIdAndUpdate(
+      user.emporiumId,
+      { $set: req.body },
       { new: true },
-    ).session(session);
-    user.emporium.name = req.body.name || user.emporium.name;
-    await user.save();
-    await session.commitTransaction();
-    session.endSession();
-    res.cookie('csrf', req.csrfToken()).status(200).json(emporium);
+    );
+    res.cookie('csrf', req.csrfToken()).status(200).json(updatedEmporium);
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     next(error);
   }
 };
@@ -131,12 +112,14 @@ export const deleteEmporium = async (
   try {
     const user = await User.findById(currentUser.id);
     if (!user || !user.isAlsoSeller) {
+      session.abortTransaction();
+      session.endSession();
       const err = new NotFound("user or emporium doesn't exist");
       return next(err);
     }
-    await Emporium.findByIdAndDelete(user.emporium._id).session(session);
+    await Emporium.findByIdAndDelete(user.emporiumId).session(session);
     await User.findByIdAndUpdate(currentUser.id, {
-      $unset: { emporium: '' },
+      $unset: { emporiumId: '' },
       $set: { isAlsoSeller: false },
     });
     await session.commitTransaction();
