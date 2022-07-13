@@ -18,7 +18,6 @@ export type Profile = {
   name: string;
   gender: string;
   picture: string;
-  addresses: Address[];
 };
 export type UserDocument = Document & {
   username: string;
@@ -29,6 +28,7 @@ export type UserDocument = Document & {
   createdAt: number;
   lastLoginAt: number;
   profile: Profile;
+  addresses: Address[];
   isAlsoSeller: boolean;
   emporiumId: EmporiumDocument;
   comparePassword: ComparePasswordFunction;
@@ -50,16 +50,16 @@ const UserSchema = new Schema<UserDocument>({
     name: String,
     gender: String,
     picture: String,
-    addresses: [
-      {
-        _id: { type: String, default: nanoid() },
-        country: String,
-        city: String,
-        zipCode: Number,
-        fullAddress: String,
-      },
-    ],
   },
+  addresses: [
+    {
+      _id: { type: String, default: nanoid() },
+      country: String,
+      city: String,
+      zipCode: Number,
+      fullAddress: String,
+    },
+  ],
   emporiumId: { type: mongoose.Schema.Types.ObjectId, ref: 'Emporium' },
 });
 

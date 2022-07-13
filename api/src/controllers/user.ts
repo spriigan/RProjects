@@ -3,6 +3,7 @@ import { body, check, validationResult } from 'express-validator';
 import mongoose, { CallbackError } from 'mongoose';
 import passport from 'passport';
 import { join } from 'path';
+import { createAddress } from '../helpers/helper';
 import emporiumModel from '../models/emporium.model';
 import User, { Address, UserDocument } from '../models/User';
 import { saveUser } from '../services/user.service';
@@ -68,7 +69,7 @@ export const updateUserProfile = async (
     user.profile.name = req.body.name || user.profile.name;
     user.profile.gender = req.body.gender || user.profile.gender;
     address &&
-      user.profile.addresses.forEach((data) => {
+      user.addresses.forEach((data) => {
         if (data._id === address._id) {
           data.city = address.city || data.city;
           data.country = address.country || data.country;
@@ -160,10 +161,7 @@ export const logout = (req: Request, res: Response, next: NextFunction) => {
 
 export const addAddress = async (req: Request, res: Response) => {
   const user = req.user as UserDocument;
-  const result = await User.updateOne(
-    { _id: user.id },
-    { $push: { 'profile.addresses': req.body } },
-  );
+  const result = await createAddress(user.id, req.body, User);
   res.cookie('csrf', req.csrfToken()).send(result);
 };
 

@@ -4,6 +4,7 @@ import mongoose, { MongooseError } from 'mongoose';
 import User, { UserDocument } from '../models/User';
 import { BadRequest, NotFound } from '../types/error.type';
 import Emporium, { EmporiumDocument } from '../models/emporium.model';
+import { createAddress } from '../helpers/helper';
 
 export const createEmporium = async (
   req: Request,
@@ -130,4 +131,26 @@ export const deleteEmporium = async (
     session.endSession();
     next(error);
   }
+};
+
+export const addEmporiumAddress = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const currentUser = req.user as UserDocument;
+  User.findById(
+    currentUser.id,
+    async (err: MongooseError, found: UserDocument) => {
+      if (err) {
+        return next(err);
+      }
+      const result = await createAddress(
+        found.emporiumId._id,
+        req.body,
+        Emporium,
+      );
+      res.cookie('csrf', req.csrfToken()).send(result);
+    },
+  );
 };
