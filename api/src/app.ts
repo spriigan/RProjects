@@ -13,6 +13,7 @@ import './config/passport';
 import helmet from 'helmet';
 import emporiumRoute from './routes/emporium.route';
 import { MONGO_URI, SESSION_SECRET } from './utils/config.util';
+import productRoute from './routes/product.route';
 const app: Application = express();
 app.use(express.json());
 app.use(helmet());
@@ -49,6 +50,7 @@ app.use(passport.session());
 app.use(csrf());
 app.use('/user', userRoute);
 app.use('/emporium', emporiumRoute);
+app.use('/product', productRoute);
 app.use(handleError);
 app.listen(process.env.PORT, () => {
   connect();

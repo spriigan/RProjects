@@ -26,7 +26,12 @@ route.post('/add-address', isAuthenticated, addAddress);
 route.get('/', isAuthenticated, findUser);
 route.get('/all', findUsers);
 route.get('/profile-picture/:picture', isAuthenticated, getProfilePicture);
-route.patch('/update-profile/', pictureField, updateUserProfile);
+route.patch(
+  '/update-profile/',
+  isAuthenticated,
+  pictureField,
+  updateUserProfile,
+);
 route.delete('/', isAuthenticated, deleteAccount);
 route.delete('/:id', isAuthenticated, deleteAddress);
 export default route;
