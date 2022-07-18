@@ -3,9 +3,10 @@ import { join } from 'path';
 import { isAuthenticated } from '../config/passport';
 import {
   createProduct,
+  deleteProduct,
   findSingleProducrById,
   listAllProducts,
-  listAllProductsByCertainEmporium,
+  updateProduct,
 } from '../controllers/product.controller';
 import { uploadPicture } from '../middleware/uploadFile.middleware';
 const picturesField = uploadPicture({
@@ -16,5 +17,6 @@ const productRoute: Router = Router();
 productRoute.post('/', isAuthenticated, picturesField, createProduct);
 productRoute.get('/', listAllProducts);
 productRoute.get('/:id', isAuthenticated, findSingleProducrById);
-productRoute.get('/list/:name', listAllProductsByCertainEmporium);
+productRoute.patch('/:id', isAuthenticated, updateProduct);
+productRoute.delete('/:id', isAuthenticated, deleteProduct);
 export default productRoute;

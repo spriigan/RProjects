@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, check, validationResult } from 'express-validator';
-import mongoose, { MongooseError } from 'mongoose';
+import mongoose, { CallbackError, MongooseError } from 'mongoose';
 import User, { UserDocument } from '../models/User';
 import { BadRequest, NotFound } from '../types/error.type';
 import Emporium, { EmporiumDocument } from '../models/emporium.model';
 import { createAddress } from '../helpers/helper';
+import ProductModel from '../models/Product.model';
 
 export const createEmporium = async (
   req: Request,
@@ -126,7 +127,8 @@ export const deleteEmporium = async (
     await User.findByIdAndUpdate(currentUser.id, {
       $unset: { emporiumId: '' },
       $set: { isAlsoSeller: false },
-    });
+    }).session(session);
+    await ProductModel.deleteMany({ emporiumId: user.emporiumId });
     await session.commitTransaction();
     session.endSession();
     res.cookie('csrf', req.csrfToken()).status(200).send('emporium deleted');
@@ -157,4 +159,31 @@ export const addEmporiumAddress = async (
       res.cookie('csrf', req.csrfToken()).send(result);
     },
   );
+};
+
+export const listAllProductsInEmporium = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    Emporium.aggregate([
+      { $match: { name: req.params.name } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: 'emporiumId',
+          as: 'products',
+        },
+      },
+    ]).exec((err: CallbackError, emporium) => {
+      if (err) {
+        return next(err);
+      }
+      res.cookie('csrf', req.csrfToken()).status(200).json(emporium);
+    });
+  } catch (error) {
+    next(error);
+  }
 };

@@ -1,6 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import mongoose, { CallbackError, MongooseError } from 'mongoose';
-import emporiumModel from '../models/emporium.model';
 import ProductModel from '../models/Product.model';
 import User, { UserDocument } from '../models/User';
 import { NotFound } from '../types/error.type';
@@ -54,29 +52,22 @@ export const findSingleProducrById = async (
   }
 };
 
-export const listAllProductsByCertainEmporium = async (
+export const updateProduct = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    emporiumModel
-      .aggregate([
-        { $match: { name: req.params.name } },
-        {
-          $lookup: {
-            from: 'products',
-            localField: '_id',
-            foreignField: 'emporiumId',
-            as: 'products',
-          },
-        },
-      ])
-      .exec((err: CallbackError, emporium) => {
-        console.log(emporium);
-        res.cookie('csrf', req.csrfToken()).status(200).json(emporium);
-      });
-  } catch (error) {
-    next(error);
-  }
+  const result = await ProductModel.updateOne(
+    { _id: req.params.id },
+    { $set: req.body },
+  );
+  res.cookie('csrf', req.csrfToken()).status(200).json(result);
+};
+export const deleteProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const result = await ProductModel.deleteOne({ _id: req.params.id });
+  res.cookie('csrf', req.csrfToken()).status(200).json(result);
 };

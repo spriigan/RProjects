@@ -5,6 +5,7 @@ import passport from 'passport';
 import { join } from 'path';
 import { createAddress } from '../helpers/helper';
 import emporiumModel from '../models/emporium.model';
+import ProductModel from '../models/Product.model';
 import User, { Address, UserDocument } from '../models/User';
 import { saveUser } from '../services/user.service';
 import { BadRequest, NotFound } from '../types/error.type';
@@ -105,7 +106,8 @@ export const deleteAccount = async (
       return next(err);
     }
     await User.findByIdAndDelete(user._id).session(session);
-    await emporiumModel.findByIdAndDelete(user.emporiumId);
+    await emporiumModel.findByIdAndDelete(user.emporiumId).session(session);
+    await ProductModel.deleteMany({ emporiumId: user.emporiumId });
     await session.commitTransaction();
     session.endSession();
     logout(req, res, next);
