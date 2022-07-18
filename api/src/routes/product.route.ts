@@ -3,7 +3,9 @@ import { join } from 'path';
 import { isAuthenticated } from '../config/passport';
 import {
   createProduct,
+  findSingleProducrById,
   listAllProducts,
+  listAllProductsByCertainEmporium,
 } from '../controllers/product.controller';
 import { uploadPicture } from '../middleware/uploadFile.middleware';
 const picturesField = uploadPicture({
@@ -13,4 +15,6 @@ const picturesField = uploadPicture({
 const productRoute: Router = Router();
 productRoute.post('/', isAuthenticated, picturesField, createProduct);
 productRoute.get('/', listAllProducts);
+productRoute.get('/:id', isAuthenticated, findSingleProducrById);
+productRoute.get('/list/:name', listAllProductsByCertainEmporium);
 export default productRoute;

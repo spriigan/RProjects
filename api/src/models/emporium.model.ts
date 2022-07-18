@@ -12,7 +12,7 @@ export type EmporiumDocument = Document & {
   joinAt: number;
 };
 const EmporiumSchema = new Schema<EmporiumDocument>({
-  name: { type: String },
+  name: { type: String, unique: true },
   addresses: [
     {
       _id: { type: String },

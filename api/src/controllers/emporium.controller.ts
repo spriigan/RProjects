@@ -36,6 +36,10 @@ export const createEmporium = async (
       if (err) {
         return next(err);
       }
+      if (user.emporiumId) {
+        const error = new BadRequest('you already has emporium');
+        return next(error);
+      }
       user.emporiumId = emporium;
       user.isAlsoSeller = true;
       user.save((err) => {
