@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { join } from 'path';
 import ProductModel from '../models/Product.model';
 import User, { UserDocument } from '../models/User';
 import { NotFound } from '../types/error.type';
@@ -70,4 +71,23 @@ export const deleteProduct = async (
 ) => {
   const result = await ProductModel.deleteOne({ _id: req.params.id });
   res.cookie('csrf', req.csrfToken()).status(200).json(result);
+};
+export const getProductPictures = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  res
+    .cookie('csrf', req.csrfToken())
+    .sendFile(
+      join(
+        process.cwd(),
+        `public/uploads/images/products/${req.params.picture}`,
+      ),
+      (err) => {
+        if (err) {
+          return next(err);
+        }
+      },
+    );
 };

@@ -5,6 +5,7 @@ import {
   createProduct,
   deleteProduct,
   findSingleProducrById,
+  getProductPictures,
   listAllProducts,
   updateProduct,
 } from '../controllers/product.controller';
@@ -17,6 +18,7 @@ const productRoute: Router = Router();
 productRoute.post('/', isAuthenticated, picturesField, createProduct);
 productRoute.get('/', listAllProducts);
 productRoute.get('/:id', isAuthenticated, findSingleProducrById);
+productRoute.get('/products-picture/:picture', getProductPictures);
 productRoute.patch('/:id', isAuthenticated, updateProduct);
 productRoute.delete('/:id', isAuthenticated, deleteProduct);
 export default productRoute;
