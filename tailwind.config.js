@@ -6,6 +6,13 @@ module.exports = {
   ],
   theme: {
     extend: {},
+    colors: {
+      'colorNavBar': '#472e8c',
+      'white': '#ffffff',
+      'gray': '#6B7378',
+      'black': '#000000'
+    },
+    
   },
   plugins: [],
 }
